@@ -36,8 +36,9 @@ Snake :: struct {
     position: Vec2,
     speed: Vec2,
     direction: Direction,
-    tail: [20]Vec2,
-    len: int
+    tail: [50]Vec2,
+    len: int,
+    food: int,
 }
 
 Direction :: enum {
@@ -51,6 +52,8 @@ currentLevel: Level
 camera : rl.Camera2D
 snake : Snake
 fruits: [4]Fruit
+
+movement_timer : f32 = 0
 
 main :: proc() {
     rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Multi Snakes!") 
@@ -116,7 +119,8 @@ init_game :: proc() {
         position = { SCREEN_WIDTH/2, SCREEN_HEIGHT/2 },
         speed = 500,
         direction = .O,
-        len = 1,
+        len = 0,
+        food = 0,
     }
     fruits = [?]Fruit { {position={200,200}, status = .Active},
                   {position={400,200}, status = .Active},
@@ -126,6 +130,11 @@ init_game :: proc() {
 }
 
 update :: proc() {
+
+    if snake.food > 0 {
+        snake.len += snake.food
+        snake.food = 0
+    }
 
     current_direction: Vec2
     switch snake.direction {
@@ -143,24 +152,25 @@ update :: proc() {
         }
     }
     frametime := rl.GetFrameTime() 
-    if snake.len > 1 {
-        for i in 0..=snake.len-1 {
-            if (i == snake.len-1) {
-                snake.tail[snake.len-1-i] = (snake.position - current_direction*50) 
-            }
-            else {
-                snake.tail[snake.len-1-i] = snake.tail[snake.len-1-i-1] 
-            }
-        }
-    } else {
-        snake.tail[0] = snake.position - current_direction*50 
-    }
-    snake.position += snake.speed * current_direction * frametime
 
+    movement_timer += frametime
+    
+    if movement_timer > 0.004
+    {
+
+    movement_timer = 0
+    next_pos := snake.position
+    snake.position += snake.speed * current_direction * frametime
+    for i in 0..=snake.len-1 {
+        current_pos := snake.tail[i] 
+        snake.tail[i] = next_pos
+        next_pos = current_pos     
+    }}
+    
     for &f in fruits {
         if f.status == .Active {
             if rl.CheckCollisionCircleRec(f.position,25,{snake.position.x,snake.position.y,50,50}) {
-                snake.len += 1
+                snake.food += 1
                 f.status = .Inactive
             }
         }
@@ -174,11 +184,10 @@ draw :: proc() {
     rl.BeginMode2D(camera)
     defer rl.EndDrawing()
     rl.ClearBackground(rl.BLACK)   
-    rl.DrawText("GAME ON", SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 100, rl.ORANGE);  
+    //rl.DrawText("GAME ON", SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 100, rl.ORANGE);  
     draw_fruits()
     draw_snake()
     rl.EndMode2D() 
-    fmt.println(snake.len)
 }
 clear_game:: proc() {}
 
