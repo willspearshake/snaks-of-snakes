@@ -32,13 +32,19 @@ Fruit :: struct {
     status: Status,
 }
 
+SnakeBlock :: struct {
+    position: Vec2,
+    speed_direction: Vec2,
+}
+
 Snake :: struct {
     position: Vec2,
     speed: Vec2,
     direction: Direction,
-    tail: [50]Vec2,
+    tail: [50]SnakeBlock,
     len: int,
     food: int,
+    speed_direction: Vec2,
 }
 
 Direction :: enum {
@@ -122,10 +128,11 @@ init_game :: proc() {
         len = 0,
         food = 0,
     }
-    fruits = [?]Fruit { {position={200,200}, status = .Active},
-                  {position={400,200}, status = .Active},
-                  {position={100,100}, status = .Active},
-                  {position={500,500}, status = .Active},
+    fruits = [?]Fruit { 
+                    {position={200,200}, status = .Active},
+                    {position={400,200}, status = .Active},
+                    {position={100,100}, status = .Active},
+                    {position={500,500}, status = .Active},
                 }
 }
 
@@ -153,19 +160,24 @@ update :: proc() {
     }
     frametime := rl.GetFrameTime() 
 
-    movement_timer += frametime
-    
-    if movement_timer > 0.004
-    {
+    next_direction := snake.speed_direction
+    next_pos := snake.position 
 
-    movement_timer = 0
-    next_pos := snake.position
-    snake.position += snake.speed * current_direction * frametime
+
+    snake.speed_direction = current_direction
+    snake.position += snake.speed * snake.speed_direction * frametime
+
+
     for i in 0..=snake.len-1 {
-        current_pos := snake.tail[i] 
-        snake.tail[i] = next_pos
-        next_pos = current_pos     
-    }}
+        current_direction_body := snake.tail[i].speed_direction
+        current_pos := snake.tail[i].position 
+
+        snake.tail[i].position = next_pos
+        snake.tail[i].speed_direction = next_direction
+
+        next_pos = current_pos
+        next_direction = current_direction_body
+    }
     
     for &f in fruits {
         if f.status == .Active {
@@ -184,10 +196,10 @@ draw :: proc() {
     rl.BeginMode2D(camera)
     defer rl.EndDrawing()
     rl.ClearBackground(rl.BLACK)   
-    //rl.DrawText("GAME ON", SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 100, rl.ORANGE);  
     draw_fruits()
     draw_snake()
     rl.EndMode2D() 
+    //fmt.println(snake.len)
 }
 clear_game:: proc() {}
 
@@ -226,7 +238,7 @@ draw_fruits :: proc() {
 
 draw_snake :: proc() {
     for i in 0..=snake.len - 1 {
-        rl.DrawRectangleV(snake.tail[i],{50,50}, rl.ORANGE)  
+        rl.DrawRectangleV(snake.tail[i].position,{50,50}, rl.ORANGE)  
     }
     rl.DrawRectangleV(snake.position,{50,50}, rl.ORANGE)
 }
