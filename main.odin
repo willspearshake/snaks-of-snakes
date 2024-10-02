@@ -123,7 +123,7 @@ main :: proc() {
 init_game :: proc() {
     snake = Snake {
         position = { SCREEN_WIDTH/2, SCREEN_HEIGHT/2 },
-        speed = 500,
+        speed = 5000,
         direction = .O,
         len = 0,
         food = 0,
@@ -160,6 +160,12 @@ update :: proc() {
     }
     frametime := rl.GetFrameTime() 
 
+    movement_timer += frametime
+
+    if movement_timer > 0.2{
+
+    movement_timer -= 0.2
+    
     next_direction := snake.speed_direction
     next_pos := snake.position 
 
@@ -178,7 +184,7 @@ update :: proc() {
         next_pos = current_pos
         next_direction = current_direction_body
     }
-    
+    }
     for &f in fruits {
         if f.status == .Active {
             if rl.CheckCollisionCircleRec(f.position,25,{snake.position.x,snake.position.y,50,50}) {
