@@ -146,14 +146,14 @@ update :: proc() {
     if snake.len > 1 {
         for i in 0..=snake.len-1 {
             if (i == snake.len-1) {
-                snake.tail[0] = snake.position
+                snake.tail[snake.len-1-i] = (snake.position - current_direction*50) 
             }
             else {
-                snake.tail[snake.len-1-i] = snake.tail[snake.len-i-1]
+                snake.tail[snake.len-1-i] = snake.tail[snake.len-1-i-1] 
             }
         }
     } else {
-        snake.tail[0] = snake.position
+        snake.tail[0] = snake.position - current_direction*50 
     }
     snake.position += snake.speed * current_direction * frametime
 
