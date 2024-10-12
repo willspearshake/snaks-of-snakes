@@ -194,7 +194,8 @@ update :: proc() {
 
     for &f in fruits {
         if f.status == .Active {
-            if rl.CheckCollisionCircleRec(f.position,50,{snake.position.x,snake.position.y,50,50}) {
+            if rl.CheckCollisionCircleRec(f.position+{25,25},50,{snake.position.x*50,snake.position.y*50,50,50}) {
+                fmt.println("qui")
                 snake.food += 1
                 f.status = .Inactive
             }
