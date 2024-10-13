@@ -16,6 +16,7 @@ FRAME_RATE :: 60
 
 GRID_WIDTH :: 400
 GRID_HEIGHT :: 400
+CELL_SIZE :: 50
 
 Vec2 :: [2]f32
 
@@ -138,10 +139,10 @@ init_game :: proc() {
         }
     }
     fruits = [?]Fruit { 
-        {position={200,200}, status = .Active},
-        {position={400,200}, status = .Active},
-        {position={100,100}, status = .Active},
-        {position={500,500}, status = .Active},
+        {position=({4,5}), status = .Active},
+        {position=({6,10}), status = .Active},
+        {position=({8,7}), status = .Active},
+        {position=({20,5}), status = .Active},
     }
 }
 
@@ -194,7 +195,7 @@ update :: proc() {
 
     for &f in fruits {
         if f.status == .Active {
-            if rl.CheckCollisionCircleRec(f.position+{25,25},50,{snake.position.x*50,snake.position.y*50,50,50}) {
+            if rl.CheckCollisionRecs({f.position.x*CELL_SIZE,f.position.y*CELL_SIZE,50,50},{snake.position.x*CELL_SIZE,snake.position.y*CELL_SIZE,50,50}) {
                 fmt.println("qui")
                 snake.food += 1
                 f.status = .Inactive
@@ -245,14 +246,15 @@ game_input :: proc() {
 draw_fruits :: proc() {
     for f in fruits {
         if f.status == .Active {
-            rl.DrawCircleV(f.position,25,rl.RED)
+            rl.DrawCircleV(f.position*CELL_SIZE+{25,25},25,rl.RED)
+            rl.DrawRectangleLines(i32(f.position.x*CELL_SIZE),i32(f.position.y*CELL_SIZE),50,50,rl.GREEN)
         }
     }
 }
 
 draw_snake :: proc() {
     for i in 0..=snake.len - 1 {
-        rl.DrawRectangleV(snake.tail[i]*50,{50,50}, rl.ORANGE)  
+        rl.DrawRectangleV(snake.tail[i]*CELL_SIZE,{50,50}, rl.ORANGE)  
     }
-    rl.DrawRectangleV(snake.position*50,{50,50}, rl.ORANGE)
+    rl.DrawRectangleV(snake.position*CELL_SIZE,{50,50}, rl.ORANGE)
 }
