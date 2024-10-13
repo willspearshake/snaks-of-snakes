@@ -14,8 +14,8 @@ SCREEN_WIDTH :: 800
 SCREEN_HEIGHT :: 800
 FRAME_RATE :: 60
 
-GRID_WIDTH :: 400
-GRID_HEIGHT :: 400
+GRID_WIDTH :: 800
+GRID_HEIGHT :: 800
 CELL_SIZE :: 50
 
 Vec2 :: [2]f32
@@ -62,6 +62,7 @@ camera : rl.Camera2D
 snake : Snake
 fruits: [4]Fruit
 current_movement: Vec2
+isGameOver: bool
 
 movement_timer : f32 = 0
 
@@ -98,7 +99,7 @@ main :: proc() {
                 init_game()
                 runningLevel: for true {
                     if rl.WindowShouldClose() {break game_loop}
-                    if rl.IsKeyPressed(.G) {
+                    if rl.IsKeyPressed(.G) || isGameOver {
                         currentLevel = Level.GameOver
                         break runningLevel
                     }
@@ -127,6 +128,7 @@ main :: proc() {
 }
 
 init_game :: proc() {
+    isGameOver = false
     snake = Snake {
         position = { 10, 10 },
         speed = 1,
@@ -195,13 +197,26 @@ update :: proc() {
 
     for &f in fruits {
         if f.status == .Active {
-            if rl.CheckCollisionRecs({f.position.x*CELL_SIZE,f.position.y*CELL_SIZE,50,50},{snake.position.x*CELL_SIZE,snake.position.y*CELL_SIZE,50,50}) {
+            if rl.CheckCollisionRecs({f.position.x*CELL_SIZE,f.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE},{snake.position.x*CELL_SIZE,snake.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE}) {
                 fmt.println("qui")
                 snake.food += 1
                 f.status = .Inactive
             }
         }
     }
+
+    if (snake.position.x*CELL_SIZE < 0  || snake.position.x*CELL_SIZE > GRID_WIDTH) ||
+       (snake.position.y*CELL_SIZE < 0 || snake.position.y*CELL_SIZE > GRID_HEIGHT) {
+          isGameOver = true
+       }
+
+    for part in snake.tail {
+        if (snake.position == part) {
+            isGameOver = true
+        }
+    }
+
+    
 
 
 }
@@ -246,15 +261,15 @@ game_input :: proc() {
 draw_fruits :: proc() {
     for f in fruits {
         if f.status == .Active {
-            rl.DrawCircleV(f.position*CELL_SIZE+{25,25},25,rl.RED)
-            rl.DrawRectangleLines(i32(f.position.x*CELL_SIZE),i32(f.position.y*CELL_SIZE),50,50,rl.GREEN)
+            rl.DrawCircleV(f.position*CELL_SIZE+{CELL_SIZE/2,CELL_SIZE/2},25,rl.RED)
+            rl.DrawRectangleLines(i32(f.position.x*CELL_SIZE),i32(f.position.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
         }
     }
 }
 
 draw_snake :: proc() {
     for i in 0..=snake.len - 1 {
-        rl.DrawRectangleV(snake.tail[i]*CELL_SIZE,{50,50}, rl.ORANGE)  
+        rl.DrawRectangleV(snake.tail[i]*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, rl.ORANGE)  
     }
-    rl.DrawRectangleV(snake.position*CELL_SIZE,{50,50}, rl.ORANGE)
+    rl.DrawRectangleV(snake.position*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, rl.ORANGE)
 }
