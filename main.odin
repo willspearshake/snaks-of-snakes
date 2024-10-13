@@ -5,18 +5,23 @@ import "core:math"
 import "core:os"
 import "core:encoding/json"
 import "core:math/linalg"
+import "core:math/rand"
 
 //for DEBUG
 import "core:fmt"
 
 //Constants
-SCREEN_WIDTH :: 800
-SCREEN_HEIGHT :: 800
+SCREEN_WIDTH :: 1500
+SCREEN_HEIGHT :: 1500
 FRAME_RATE :: 60
 
-GRID_WIDTH :: 800
-GRID_HEIGHT :: 800
+GRID_WIDTH :: 900
+GRID_HEIGHT :: 900
 CELL_SIZE :: 50
+
+
+GRID_OFFSET_X :: 100
+GRID_OFFSET_Y :: 100
 
 Vec2 :: [2]f32
 
@@ -99,12 +104,13 @@ main :: proc() {
                 init_game()
                 runningLevel: for true {
                     if rl.WindowShouldClose() {break game_loop}
+      
+                    game_input()
+                    update()
                     if rl.IsKeyPressed(.G) || isGameOver {
                         currentLevel = Level.GameOver
                         break runningLevel
                     }
-                    game_input()
-                    update()
                     draw()
                 }
             }
@@ -113,6 +119,7 @@ main :: proc() {
                     if rl.WindowShouldClose() {break game_loop}
                     if rl.IsKeyPressed(.P) {
                         currentLevel = Level.PlainLevel
+                        isGameOver = false
                         break game_over
                     }
                     rl.BeginDrawing()
@@ -128,7 +135,6 @@ main :: proc() {
 }
 
 init_game :: proc() {
-    isGameOver = false
     snake = Snake {
         position = { 10, 10 },
         speed = 1,
@@ -144,7 +150,7 @@ init_game :: proc() {
         {position=({4,5}), status = .Active},
         {position=({6,10}), status = .Active},
         {position=({8,7}), status = .Active},
-        {position=({20,5}), status = .Active},
+        {position=({5,5}), status = .Active},
     }
 }
 
@@ -179,9 +185,9 @@ update :: proc() {
 
     movement_timer += frametime
 
-    if movement_timer > 0.13 {
+    if movement_timer > 0.15 {
 
-        movement_timer -= 0.13
+        movement_timer -= 0.15
 
         next_pos := snake.position 
 
@@ -198,15 +204,15 @@ update :: proc() {
     for &f in fruits {
         if f.status == .Active {
             if rl.CheckCollisionRecs({f.position.x*CELL_SIZE,f.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE},{snake.position.x*CELL_SIZE,snake.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE}) {
-                fmt.println("qui")
                 snake.food += 1
-                f.status = .Inactive
+                //f.status = .Inactive
+                f.position = spawn_fruit_position()
             }
         }
     }
 
-    if (snake.position.x*CELL_SIZE < 0  || snake.position.x*CELL_SIZE > GRID_WIDTH) ||
-       (snake.position.y*CELL_SIZE < 0 || snake.position.y*CELL_SIZE > GRID_HEIGHT) {
+    if (snake.position.x*CELL_SIZE < GRID_OFFSET_X  || snake.position.x*CELL_SIZE > GRID_WIDTH + GRID_OFFSET_X) ||
+       (snake.position.y*CELL_SIZE < GRID_OFFSET_Y || snake.position.y*CELL_SIZE > GRID_HEIGHT + GRID_OFFSET_Y) {
           isGameOver = true
        }
 
@@ -226,6 +232,7 @@ draw :: proc() {
     rl.BeginMode2D(camera)
     defer rl.EndDrawing()
     rl.ClearBackground(rl.BLACK)   
+    draw_layout()
     draw_fruits()
     draw_snake()
     rl.EndMode2D() 
@@ -272,4 +279,14 @@ draw_snake :: proc() {
         rl.DrawRectangleV(snake.tail[i]*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, rl.ORANGE)  
     }
     rl.DrawRectangleV(snake.position*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, rl.ORANGE)
+}
+
+draw_layout :: proc() {
+    rl.DrawRectangleLines(GRID_OFFSET_X,GRID_OFFSET_Y,GRID_WIDTH, GRID_HEIGHT, rl.RED)
+}
+
+spawn_fruit_position :: proc() -> Vec2 {
+    new_position : = Vec2 {f32(rand.int31_max(GRID_WIDTH/CELL_SIZE)), f32(rand.int31_max(GRID_HEIGHT/CELL_SIZE))} + {GRID_OFFSET_X/CELL_SIZE,GRID_OFFSET_Y/CELL_SIZE}
+    //fmt.println(new_position)
+    return new_position
 }
