@@ -50,12 +50,10 @@ SnakeBlock :: struct {
 
 Snake :: struct {
     position: Vec2,
-    speed: Vec2,
     direction: Direction,
     tail: [dynamic]Vec2,
     len: int,
     food: int,
-    speed_direction: Vec2,
 }
 
 Direction :: enum {
@@ -71,6 +69,7 @@ snake : Snake
 fruit: Vec2
 current_movement: Vec2
 isGameOver: bool
+game_speed : f32 = 0.2
 
 movement_timer : f32 = 0
 
@@ -138,7 +137,6 @@ main :: proc() {
 init_game :: proc() {
     snake = Snake {
         position = { 10, 10 },
-        speed = 1,
         direction = .O,
         len = 2,
         food = 0,
@@ -181,9 +179,9 @@ update :: proc() {
 
     movement_timer += frametime
 
-    if movement_timer > 0.15 {
+    if movement_timer > game_speed {
 
-        movement_timer -= 0.15
+        movement_timer -= game_speed
 
         next_pos := snake.position 
 
@@ -199,6 +197,7 @@ update :: proc() {
 
     if rl.CheckCollisionRecs({fruit.x*CELL_SIZE,fruit.y*CELL_SIZE,CELL_SIZE,CELL_SIZE},{snake.position.x*CELL_SIZE,snake.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE}) {
         snake.food += 1
+        if (game_speed > 0.08) {game_speed -= 0.01}
         fruit = spawn_fruit_position()
     }
     
