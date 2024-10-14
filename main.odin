@@ -25,6 +25,9 @@ GRID_OFFSET_Y :: 100
 
 Vec2 :: [2]f32
 
+Vec2i :: [2]int
+
+
 Level :: enum {
     MainMenu,
     PlainLevel,
@@ -65,13 +68,11 @@ Direction :: enum {
 currentLevel: Level
 camera : rl.Camera2D
 snake : Snake
-fruits: [4]Fruit
+fruit: Vec2
 current_movement: Vec2
 isGameOver: bool
 
 movement_timer : f32 = 0
-
-Vec2i : [2]int
 
 main :: proc() {
     rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Multi Snakes!") 
@@ -146,12 +147,7 @@ init_game :: proc() {
             { 12, 10 }
         }
     }
-    fruits = [?]Fruit { 
-        {position=({4,5}), status = .Active},
-        {position=({6,10}), status = .Active},
-        {position=({8,7}), status = .Active},
-        {position=({5,5}), status = .Active},
-    }
+    fruit = {4,5}
 }
 
 update :: proc() {
@@ -201,15 +197,11 @@ update :: proc() {
         }
     }
 
-    for &f in fruits {
-        if f.status == .Active {
-            if rl.CheckCollisionRecs({f.position.x*CELL_SIZE,f.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE},{snake.position.x*CELL_SIZE,snake.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE}) {
-                snake.food += 1
-                //f.status = .Inactive
-                f.position = spawn_fruit_position()
-            }
-        }
+    if rl.CheckCollisionRecs({fruit.x*CELL_SIZE,fruit.y*CELL_SIZE,CELL_SIZE,CELL_SIZE},{snake.position.x*CELL_SIZE,snake.position.y*CELL_SIZE,CELL_SIZE,CELL_SIZE}) {
+        snake.food += 1
+        fruit = spawn_fruit_position()
     }
+    
 
     if (snake.position.x*CELL_SIZE < GRID_OFFSET_X  || snake.position.x*CELL_SIZE > GRID_WIDTH + GRID_OFFSET_X) ||
        (snake.position.y*CELL_SIZE < GRID_OFFSET_Y || snake.position.y*CELL_SIZE > GRID_HEIGHT + GRID_OFFSET_Y) {
@@ -233,7 +225,7 @@ draw :: proc() {
     defer rl.EndDrawing()
     rl.ClearBackground(rl.BLACK)   
     draw_layout()
-    draw_fruits()
+    draw_fruit()
     draw_snake()
     rl.EndMode2D() 
     //fmt.println(snake.len)
@@ -265,14 +257,20 @@ game_input :: proc() {
 }
 
 
-draw_fruits :: proc() {
-    for f in fruits {
-        if f.status == .Active {
-            rl.DrawCircleV(f.position*CELL_SIZE+{CELL_SIZE/2,CELL_SIZE/2},25,rl.RED)
-            rl.DrawRectangleLines(i32(f.position.x*CELL_SIZE),i32(f.position.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
-        }
-    }
+// draw_fruits :: proc() {
+//     for f in fruits {
+//         if f.status == .Active {
+//             rl.DrawCircleV(f.position*CELL_SIZE+{CELL_SIZE/2,CELL_SIZE/2},25,rl.RED)
+//             rl.DrawRectangleLines(i32(f.position.x*CELL_SIZE),i32(f.position.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
+//         }
+//     }
+// }
+
+draw_fruit :: proc() {
+    rl.DrawCircleV(fruit*CELL_SIZE+{CELL_SIZE/2,CELL_SIZE/2},25,rl.RED)
+    rl.DrawRectangleLines(i32(fruit.x*CELL_SIZE),i32(fruit.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
 }
+
 
 draw_snake :: proc() {
     for i in 0..=snake.len - 1 {
