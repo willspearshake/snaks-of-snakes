@@ -72,9 +72,11 @@ snake : Snake
 fruit: Vec2
 current_movement: Vec2
 isGameOver: bool
+isPaused: bool
 game_speed : f32 = 0.2
 
 movement_timer : f32 = 0
+
 
 main :: proc() {
     rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Multi Snakes!") 
@@ -90,8 +92,9 @@ main :: proc() {
             case Level.MainMenu: {
                 menu_selection: for true {
                     if rl.WindowShouldClose() {break game_loop}
-                    if rl.IsKeyPressed(.P) {
+                    if rl.IsKeyPressed(.S) {
                         currentLevel = Level.PlainLevel
+                        init_game()
                         break menu_selection
                     }
                     rl.BeginDrawing()
@@ -104,17 +107,32 @@ main :: proc() {
                 }
             }
             case Level.PlainLevel: {
-                init_game()
                 runningLevel: for true {
                     if rl.WindowShouldClose() {break game_loop}
-      
-                    game_input()
-                    update()
-                    if rl.IsKeyPressed(.G) || isGameOver {
-                        currentLevel = Level.GameOver
-                        break runningLevel
+                    
+                    if !isPaused{
+                        game_input()
+                        update()
+                        if rl.IsKeyPressed(.G) || isGameOver {
+                            currentLevel = Level.GameOver
+                            break runningLevel
+                        }
+                        if rl.IsKeyPressed(.P) && !isGameOver {
+                            isPaused = true
+                        }
+                        draw()
                     }
-                    draw()
+                    else {
+                        if rl.IsKeyPressed(.S) && !isGameOver {
+                            isPaused = false
+                        }
+                        rl.BeginDrawing()
+                        rl.BeginMode2D(camera)
+                        defer rl.EndDrawing()
+                        rl.ClearBackground(rl.BROWN)   
+                        rl.DrawText("PAUSED", SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 100, rl.BLACK);                 
+                        rl.EndMode2D() 
+                    }
                 }
             }
             case Level.GameOver: {
@@ -123,6 +141,7 @@ main :: proc() {
                     if rl.IsKeyPressed(.P) {
                         currentLevel = Level.PlainLevel
                         isGameOver = false
+                        init_game()
                         break game_over
                     }
                     rl.BeginDrawing()
@@ -152,6 +171,7 @@ init_game :: proc() {
         (GRID_WIDTH + GRID_OFFSET_X)/(2*CELL_SIZE),
         (GRID_HEIGHT + GRID_OFFSET_Y)/(2*CELL_SIZE)
     }
+    isPaused = false
 }
 
 update :: proc() {
