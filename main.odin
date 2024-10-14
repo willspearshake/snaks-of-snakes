@@ -11,17 +11,20 @@ import "core:math/rand"
 import "core:fmt"
 
 //Constants
+
+GRID_OFFSET_X :: 100
+GRID_OFFSET_Y :: 100
+
 SCREEN_WIDTH :: 1500
 SCREEN_HEIGHT :: 1500
 FRAME_RATE :: 60
 
-GRID_WIDTH :: 900
-GRID_HEIGHT :: 900
+GRID_WIDTH :: SCREEN_WIDTH - GRID_OFFSET_X*2
+GRID_HEIGHT :: SCREEN_HEIGHT - GRID_OFFSET_Y*2
 CELL_SIZE :: 50
 
 
-GRID_OFFSET_X :: 100
-GRID_OFFSET_Y :: 100
+
 
 Vec2 :: [2]f32
 
@@ -145,7 +148,10 @@ init_game :: proc() {
             { 12, 10 }
         }
     }
-    fruit = {4,5}
+    fruit = {
+        (GRID_WIDTH + GRID_OFFSET_X)/(2*CELL_SIZE),
+        (GRID_HEIGHT + GRID_OFFSET_Y)/(2*CELL_SIZE)
+    }
 }
 
 update :: proc() {
@@ -154,7 +160,6 @@ update :: proc() {
         for n in 1..=snake.food {
             append(&snake.tail,snake.tail[len(snake.tail)-1])
         }
-
 
         snake.len += snake.food
         snake.food = 0
@@ -199,23 +204,22 @@ update :: proc() {
         snake.food += 1
         if (game_speed > 0.08) {game_speed -= 0.01}
         fruit = spawn_fruit_position()
-    }
-    
+    }   
 
-    if (snake.position.x*CELL_SIZE < GRID_OFFSET_X  || snake.position.x*CELL_SIZE > GRID_WIDTH + GRID_OFFSET_X) ||
-       (snake.position.y*CELL_SIZE < GRID_OFFSET_Y || snake.position.y*CELL_SIZE > GRID_HEIGHT + GRID_OFFSET_Y) {
+    if (
+        snake.position.x*CELL_SIZE < GRID_OFFSET_X  ||
+        snake.position.x*CELL_SIZE >= GRID_WIDTH + GRID_OFFSET_X ||
+        snake.position.y*CELL_SIZE < GRID_OFFSET_Y || 
+        snake.position.y*CELL_SIZE >= GRID_HEIGHT + GRID_OFFSET_Y
+    ) {
           isGameOver = true
-       }
+    }
 
     for part in snake.tail {
         if (snake.position == part) {
             isGameOver = true
         }
     }
-
-    
-
-
 }
 
 draw :: proc() {
@@ -226,9 +230,9 @@ draw :: proc() {
     draw_layout()
     draw_fruit()
     draw_snake()
-    rl.EndMode2D() 
-    //fmt.println(snake.len)
+    rl.EndMode2D()
 }
+
 clear_game:: proc() {}
 
 
@@ -256,15 +260,6 @@ game_input :: proc() {
 }
 
 
-// draw_fruits :: proc() {
-//     for f in fruits {
-//         if f.status == .Active {
-//             rl.DrawCircleV(f.position*CELL_SIZE+{CELL_SIZE/2,CELL_SIZE/2},25,rl.RED)
-//             rl.DrawRectangleLines(i32(f.position.x*CELL_SIZE),i32(f.position.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
-//         }
-//     }
-// }
-
 draw_fruit :: proc() {
     rl.DrawCircleV(fruit*CELL_SIZE+{CELL_SIZE/2,CELL_SIZE/2},25,rl.RED)
     rl.DrawRectangleLines(i32(fruit.x*CELL_SIZE),i32(fruit.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
@@ -284,6 +279,5 @@ draw_layout :: proc() {
 
 spawn_fruit_position :: proc() -> Vec2 {
     new_position : = Vec2 {f32(rand.int31_max(GRID_WIDTH/CELL_SIZE)), f32(rand.int31_max(GRID_HEIGHT/CELL_SIZE))} + {GRID_OFFSET_X/CELL_SIZE,GRID_OFFSET_Y/CELL_SIZE}
-    //fmt.println(new_position)
     return new_position
 }
