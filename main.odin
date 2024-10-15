@@ -1,10 +1,7 @@
 package main
 
 import rl "vendor:raylib"
-import "core:math"
 import "core:os"
-import "core:encoding/json"
-import "core:math/linalg"
 import "core:math/rand"
 
 //for DEBUG
@@ -23,32 +20,12 @@ GRID_WIDTH :: SCREEN_WIDTH - GRID_OFFSET_X*2
 GRID_HEIGHT :: SCREEN_HEIGHT - GRID_OFFSET_Y*2
 CELL_SIZE :: 50
 
-
-
-
 Vec2 :: [2]f32
-
-Vec2i :: [2]int
-
 
 Level :: enum {
     MainMenu,
     PlainLevel,
     GameOver,
-}
-
-Status :: enum {
-    Active,
-    Inactive,
-}
-
-Fruit :: struct {
-    position: Vec2,
-    status: Status,
-}
-
-SnakeBlock :: struct {
-    position: Vec2,
 }
 
 Snake :: struct {
@@ -79,7 +56,7 @@ movement_timer : f32 = 0
 
 
 main :: proc() {
-    rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Multi Snakes!") 
+    rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Classic Snakes!") 
     defer rl.CloseWindow()
 
     currentLevel = Level.MainMenu
@@ -101,7 +78,7 @@ main :: proc() {
                     rl.BeginMode2D(camera)
                     defer rl.EndDrawing()
                     rl.ClearBackground(rl.GREEN)   
-                    rl.DrawText("PRESS P To start Game!", SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 100, rl.BLACK);                 
+                    rl.DrawText("PRESS S To START!", (SCREEN_WIDTH - rl.MeasureText("PRESS S To START!", 100))/2, SCREEN_HEIGHT/4, 100, rl.BLACK);                 
                     rl.EndMode2D() 
    
                 }
@@ -120,25 +97,20 @@ main :: proc() {
                         if rl.IsKeyPressed(.P) && !isGameOver {
                             isPaused = true
                         }
-                        draw()
+                        draw_playing()
                     }
                     else {
-                        if rl.IsKeyPressed(.S) && !isGameOver {
+                        if rl.IsKeyPressed(.P) && !isGameOver {
                             isPaused = false
                         }
-                        rl.BeginDrawing()
-                        rl.BeginMode2D(camera)
-                        defer rl.EndDrawing()
-                        rl.ClearBackground(rl.BROWN)   
-                        rl.DrawText("PAUSED", SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 100, rl.BLACK);                 
-                        rl.EndMode2D() 
+                        draw_paused()
                     }
                 }
             }
             case Level.GameOver: {
                 game_over: for true {
                     if rl.WindowShouldClose() {break game_loop}
-                    if rl.IsKeyPressed(.P) {
+                    if rl.IsKeyPressed(.R) {
                         currentLevel = Level.PlainLevel
                         isGameOver = false
                         init_game()
@@ -146,7 +118,8 @@ main :: proc() {
                     }
                     rl.BeginDrawing()
                     defer rl.EndDrawing() 
-                    rl.DrawText("GAME OVEEEER", SCREEN_WIDTH/4, SCREEN_HEIGHT/2, 100, rl.RED);                 
+                    rl.DrawText("GAME OVEEEER", (SCREEN_WIDTH - rl.MeasureText("GAME OVEEEER",100))/2, SCREEN_HEIGHT/4, 100, rl.RED);
+                    rl.DrawText("Press R to Restart", (SCREEN_WIDTH - rl.MeasureText("Press R to Restart",50))/2, SCREEN_HEIGHT/4 + 100, 50, rl.RED);                  
 
    
                 }
@@ -156,15 +129,18 @@ main :: proc() {
     }
 }
 
+//GAME FUNCTIONS
+
 init_game :: proc() {
+    starting_offset : Vec2 = {GRID_OFFSET_X/CELL_SIZE,GRID_OFFSET_Y/CELL_SIZE}
     snake = Snake {
-        position = { 10, 10 },
-        direction = .O,
+        position = { 3 + starting_offset.x, 1 + starting_offset.y } ,
+        direction = .E,
         len = 2,
         food = 0,
         tail = {
-            { 11, 10 },
-            { 12, 10 }
+            { 2 + starting_offset.x,  1 + starting_offset.y },
+            { 1 + starting_offset.x,  1 + starting_offset.y },
         }
     }
     fruit = {
@@ -226,13 +202,11 @@ update :: proc() {
         fruit = spawn_fruit_position()
     }   
 
-    if (
-        snake.position.x*CELL_SIZE < GRID_OFFSET_X  ||
+    if (snake.position.x*CELL_SIZE < GRID_OFFSET_X  ||
         snake.position.x*CELL_SIZE >= GRID_WIDTH + GRID_OFFSET_X ||
         snake.position.y*CELL_SIZE < GRID_OFFSET_Y || 
-        snake.position.y*CELL_SIZE >= GRID_HEIGHT + GRID_OFFSET_Y
-    ) {
-          isGameOver = true
+        snake.position.y*CELL_SIZE >= GRID_HEIGHT + GRID_OFFSET_Y) {
+        isGameOver = true
     }
 
     for part in snake.tail {
@@ -241,20 +215,6 @@ update :: proc() {
         }
     }
 }
-
-draw :: proc() {
-    rl.BeginDrawing()
-    rl.BeginMode2D(camera)
-    defer rl.EndDrawing()
-    rl.ClearBackground(rl.BLACK)   
-    draw_layout()
-    draw_fruit()
-    draw_snake()
-    rl.EndMode2D()
-}
-
-clear_game:: proc() {}
-
 
 game_input :: proc() {
     if rl.IsKeyPressed(.RIGHT) {
@@ -279,12 +239,43 @@ game_input :: proc() {
     }     
 }
 
+spawn_fruit_position :: proc() -> Vec2 {
+    new_position : = Vec2 {f32(rand.int31_max(GRID_WIDTH/CELL_SIZE)), f32(rand.int31_max(GRID_HEIGHT/CELL_SIZE))} + {GRID_OFFSET_X/CELL_SIZE,GRID_OFFSET_Y/CELL_SIZE}
+    return new_position
+}
+
+
+//DRAWS
+draw_paused :: proc() {
+    rl.BeginDrawing()
+    rl.BeginMode2D(camera)
+    defer rl.EndDrawing()
+    rl.ClearBackground(rl.BLACK)   
+    draw_layout()
+    draw_fruit()
+    draw_snake()
+    draw_header()
+    rl.DrawText("GAME IS PAUSED", (SCREEN_WIDTH - rl.MeasureText("GAME IS PAUSED",100))/2, SCREEN_HEIGHT/4 + 100, 100, rl.RED); 
+    rl.DrawText("Press P to Continue", (SCREEN_WIDTH - rl.MeasureText("Press P to Continue",50))/2, SCREEN_HEIGHT/2, 50, rl.RED);                  
+    rl.EndMode2D()
+}
+
+draw_playing :: proc() {
+    rl.BeginDrawing()
+    rl.BeginMode2D(camera)
+    defer rl.EndDrawing()
+    rl.ClearBackground(rl.BLACK)   
+    draw_layout()
+    draw_fruit()
+    draw_snake()
+    draw_header()
+    rl.EndMode2D()
+}
 
 draw_fruit :: proc() {
     rl.DrawCircleV(fruit*CELL_SIZE+{CELL_SIZE/2,CELL_SIZE/2},25,rl.RED)
-    rl.DrawRectangleLines(i32(fruit.x*CELL_SIZE),i32(fruit.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
+    //rl.DrawRectangleLines(i32(fruit.x*CELL_SIZE),i32(fruit.y*CELL_SIZE),CELL_SIZE,CELL_SIZE,rl.GREEN)
 }
-
 
 draw_snake :: proc() {
     for i in 0..=snake.len - 1 {
@@ -297,7 +288,6 @@ draw_layout :: proc() {
     rl.DrawRectangleLines(GRID_OFFSET_X,GRID_OFFSET_Y,GRID_WIDTH, GRID_HEIGHT, rl.RED)
 }
 
-spawn_fruit_position :: proc() -> Vec2 {
-    new_position : = Vec2 {f32(rand.int31_max(GRID_WIDTH/CELL_SIZE)), f32(rand.int31_max(GRID_HEIGHT/CELL_SIZE))} + {GRID_OFFSET_X/CELL_SIZE,GRID_OFFSET_Y/CELL_SIZE}
-    return new_position
+draw_header :: proc() {
+    rl.DrawText("SNAKE", (SCREEN_WIDTH - rl.MeasureText("SNAKE",50))/2, 25, 50, rl.RED);  
 }
