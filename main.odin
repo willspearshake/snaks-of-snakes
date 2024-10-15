@@ -3,6 +3,8 @@ package main
 import rl "vendor:raylib"
 import "core:os"
 import "core:math/rand"
+import "core:strconv"
+import "core:strings"
 
 //for DEBUG
 import "core:fmt"
@@ -51,6 +53,8 @@ current_movement: Vec2
 isGameOver: bool
 isPaused: bool
 game_speed : f32 = 0.2
+snake_color : rl.Color = {242,92,16, 255}
+buf : [32]byte
 
 movement_timer : f32 = 0
 
@@ -77,8 +81,9 @@ main :: proc() {
                     rl.BeginDrawing()
                     rl.BeginMode2D(camera)
                     defer rl.EndDrawing()
-                    rl.ClearBackground(rl.GREEN)   
-                    rl.DrawText("PRESS S To START!", (SCREEN_WIDTH - rl.MeasureText("PRESS S To START!", 100))/2, SCREEN_HEIGHT/4, 100, rl.BLACK);                 
+                    rl.ClearBackground(rl.BLACK)   
+                    rl.DrawText("SNAKE", (SCREEN_WIDTH - rl.MeasureText("SNAKE", 200))/2, SCREEN_HEIGHT/4, 200, rl.RED);        
+                    rl.DrawText("PRESS S To START!", (SCREEN_WIDTH - rl.MeasureText("PRESS S To START!", 100))/2, SCREEN_HEIGHT - SCREEN_HEIGHT/2, 100, rl.RED);           
                     rl.EndMode2D() 
    
                 }
@@ -119,8 +124,11 @@ main :: proc() {
                     rl.BeginDrawing()
                     defer rl.EndDrawing() 
                     rl.DrawText("GAME OVEEEER", (SCREEN_WIDTH - rl.MeasureText("GAME OVEEEER",100))/2, SCREEN_HEIGHT/4, 100, rl.RED);
-                    rl.DrawText("Press R to Restart", (SCREEN_WIDTH - rl.MeasureText("Press R to Restart",50))/2, SCREEN_HEIGHT/4 + 100, 50, rl.RED);                  
-
+                    rl.DrawText("Press R to Restart", (SCREEN_WIDTH - rl.MeasureText("Press R to Restart",50))/2, SCREEN_HEIGHT/4 + 100, 50, rl.RED); 
+                    total_points_parts := [?]string { "Score: ", strconv.itoa(buf[:],snake.len-2)}                 
+                    total_points := strings.concatenate(total_points_parts[:])
+                    rl.DrawText(strings.clone_to_cstring(total_points), GRID_OFFSET_X, 25, 50, rl.RED);  
+                    rl.DrawText(strings.clone_to_cstring(total_points), (SCREEN_WIDTH - rl.MeasureText(strings.clone_to_cstring(total_points),75))/2, SCREEN_HEIGHT/4 + 200, 75, rl.RED); 
    
                 }
             }
@@ -279,9 +287,9 @@ draw_fruit :: proc() {
 
 draw_snake :: proc() {
     for i in 0..=snake.len - 1 {
-        rl.DrawRectangleV(snake.tail[i]*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, rl.ORANGE)  
+        rl.DrawRectangleV(snake.tail[i]*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, snake_color)  
     }
-    rl.DrawRectangleV(snake.position*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, rl.ORANGE)
+    rl.DrawRectangleV(snake.position*CELL_SIZE,{CELL_SIZE,CELL_SIZE}, snake_color)
 }
 
 draw_layout :: proc() {
@@ -290,4 +298,6 @@ draw_layout :: proc() {
 
 draw_header :: proc() {
     rl.DrawText("SNAKE", (SCREEN_WIDTH - rl.MeasureText("SNAKE",50))/2, 25, 50, rl.RED);  
+    points := strconv.itoa(buf[:],snake.len-2)
+    rl.DrawText(strings.clone_to_cstring(points), GRID_OFFSET_X, 25, 50, rl.RED);  
 }
