@@ -142,13 +142,13 @@ main :: proc() {
 init_game :: proc() {
     starting_offset : Vec2 = {GRID_OFFSET_X/CELL_SIZE,GRID_OFFSET_Y/CELL_SIZE}
     snake = Snake {
-        position = { 3 + starting_offset.x, 1 + starting_offset.y } ,
-        direction = .E,
+        position = {(GRID_WIDTH + GRID_OFFSET_X)/(2*CELL_SIZE),(GRID_HEIGHT + GRID_OFFSET_Y)/(2*CELL_SIZE)-4},
+        direction = .S,
         len = 2,
         food = 0,
         tail = {
-            { 2 + starting_offset.x,  1 + starting_offset.y },
-            { 1 + starting_offset.x,  1 + starting_offset.y },
+            {(GRID_WIDTH + GRID_OFFSET_X)/(2*CELL_SIZE),(GRID_HEIGHT + GRID_OFFSET_Y)/(2*CELL_SIZE)-5},
+            {(GRID_WIDTH + GRID_OFFSET_X)/(2*CELL_SIZE),(GRID_HEIGHT + GRID_OFFSET_Y)/(2*CELL_SIZE)-6},
         }
     }
     fruit = {
