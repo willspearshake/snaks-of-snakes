@@ -14,8 +14,10 @@ import "core:fmt"
 GRID_OFFSET_X :: 100
 GRID_OFFSET_Y :: 100
 
-SCREEN_WIDTH :: 1500
-SCREEN_HEIGHT :: 1500
+//SCREEN_WIDTH :: 1500
+//SCREEN_HEIGHT :: 1500
+SCREEN_WIDTH :: 1000
+SCREEN_HEIGHT :: 1000
 FRAME_RATE :: 60
 
 GRID_WIDTH :: SCREEN_WIDTH - GRID_OFFSET_X*2
@@ -82,8 +84,8 @@ main :: proc() {
                     rl.BeginMode2D(camera)
                     defer rl.EndDrawing()
                     rl.ClearBackground(rl.BLACK)   
-                    rl.DrawText("SNAKE", (SCREEN_WIDTH - rl.MeasureText("SNAKE", 200))/2, SCREEN_HEIGHT/4, 200, rl.RED);        
-                    rl.DrawText("PRESS S To START!", (SCREEN_WIDTH - rl.MeasureText("PRESS S To START!", 100))/2, SCREEN_HEIGHT - SCREEN_HEIGHT/2, 100, rl.RED);           
+                    rl.DrawText("SNAKE", (SCREEN_WIDTH - rl.MeasureText("SNAKE", 100))/2, SCREEN_HEIGHT/4, 100, rl.RED);        
+                    rl.DrawText("PRESS S To START!", (SCREEN_WIDTH - rl.MeasureText("PRESS S To START!", 75))/2, SCREEN_HEIGHT - SCREEN_HEIGHT/2, 75, rl.RED);           
                     rl.EndMode2D() 
    
                 }
@@ -127,7 +129,6 @@ main :: proc() {
                     rl.DrawText("Press R to Restart", (SCREEN_WIDTH - rl.MeasureText("Press R to Restart",50))/2, SCREEN_HEIGHT/4 + 100, 50, rl.RED); 
                     total_points_parts := [?]string { "Score: ", strconv.itoa(buf[:],snake.len-2)}                 
                     total_points := strings.concatenate(total_points_parts[:])
-                    rl.DrawText(strings.clone_to_cstring(total_points), GRID_OFFSET_X, 25, 50, rl.RED);  
                     rl.DrawText(strings.clone_to_cstring(total_points), (SCREEN_WIDTH - rl.MeasureText(strings.clone_to_cstring(total_points),75))/2, SCREEN_HEIGHT/4 + 200, 75, rl.RED); 
    
                 }
