@@ -155,6 +155,7 @@ init_game :: proc() {
         (GRID_WIDTH + GRID_OFFSET_X)/(2*CELL_SIZE),
         (GRID_HEIGHT + GRID_OFFSET_Y)/(2*CELL_SIZE)
     }
+    game_speed = 0.2
     isPaused = false
 }
 
